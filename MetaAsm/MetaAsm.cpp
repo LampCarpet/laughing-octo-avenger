@@ -22,11 +22,14 @@ private:
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	Rex_Prefix_Form r;
+	Instruction<PrefixGroupDescriptor::SINGLE_PREFIX,
+				RexPrefix_Optional_x64::HAS_REX_PREFIX,
+				OpCode_Type::SINGLE_BYTE_OPCODE,
+				SINGLE_BYTE_DISPLACEMENT, 
+				SINGLE_BYTE_IMMEDIATE> i;
 	
-	inst_a<InstPrefix_Group_1::LOCK, OpcodeType::SINGLE_BYTE_OPCODE,r, SINGLE_BYTE_DISPLACEMENT,SINGLE_BYTE_IMMEDIATE>();
 	
-
+	cout << sizeof(i);
 	cout << endl;
 	
 	cin.get();

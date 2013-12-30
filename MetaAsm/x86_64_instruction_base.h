@@ -22,6 +22,11 @@ namespace x86_64_instruction_base
 
 	typedef byte Instruction_Prefix_Group;
 
+	struct Instruction_Prefix
+	{
+
+	};
+
 	enum InstPrefix_Group_1 : Instruction_Prefix_Group
 	{
 		//The LOCK prefix forces an operation that ensures exclusive use of shared 
@@ -78,28 +83,43 @@ namespace x86_64_instruction_base
 	//preceding the opcode or the escape byte.
 	enum RexPrefix_Optional_x64 : byte
 	{
-
+		NO_REX_PREFIX = 0,
+		HAS_REX_PREFIX = 1
 	};
 
-	class InstBase {};
+	enum  PrefixGroupDescriptor : byte
+	{
+		NO_PREFIX = 0,
+		SINGLE_PREFIX = 1,
+		DOUBLE_PREFIX = 2,
+		TRIPLE_PREFIX = 3,
+		QUAD_PREFIX = 4,
+	};
 
-	template<class... elements>
+
+	template <PrefixGroupDescriptor description, Instruction_Prefix_Group prefixes>
 	class BYTE_ALIGN
-	Instruction : private InstBase, public elements...
+	Prefix_Set : aligned_bytes<description>
 	{
 	public:
-		static const auto _elements_total = sizeof...(elements);
+		static const auto _elements_total = sizeof...(prefixes);
 	};
-
 
 	struct BYTE_ALIGN
 	Rex_Prefix_Form
 	{
-		volatile byte p : 4;
-		volatile byte w : 1;
-		volatile byte r : 1;
-		volatile byte x : 1;
-		volatile byte b : 1;
+		volatile byte _p : 4;
+		volatile byte _w : 1;
+		volatile byte _r : 1;
+		volatile byte _x : 1;
+		volatile byte _b : 1;
+	};
+
+	template<RexPrefix_Optional_x64 opt>
+	struct BYTE_ALIGN
+	Optional_Rex_Form
+	{
+		Rex_Prefix_Form form[opt];
 	};
 
 	struct BYTE_ALIGN
@@ -118,7 +138,7 @@ namespace x86_64_instruction_base
 		volatile byte base  : 3;
 	};
 
-	enum OpcodeType : u8
+	enum OpCode_Type : u8
 	{
 		NO_OP = 0,
 		SINGLE_BYTE_OPCODE = 1,
@@ -128,27 +148,25 @@ namespace x86_64_instruction_base
 		TRIPLE_BYTE_OPCODE = 3
 	};
 	
-	template<typename optype>
-	class BYTE_ALIGN
-	opcode  
+	template<OpCode_Type optype>
+	struct BYTE_ALIGN
+	OpCode  
 	{
-	public:
-		optype op;
+		byte op[optype];
 	};
 
-	class op {};
 	namespace OpType
 	{
 		
 
 		struct BYTE_ALIGN
-		Single_Byte : op
+		Single_Byte
 		{
 			_byte_ operand;
 
 		private:
 			friend class InstBase;
-			const static OpcodeType opType = SINGLE_BYTE_OPCODE;
+			const static OpCode_Type opType = SINGLE_BYTE_OPCODE;
 		};
 
 		struct BYTE_ALIGN
@@ -159,7 +177,7 @@ namespace x86_64_instruction_base
 
 		private:
 			friend class InstBase;
-			const static OpcodeType opType = ESCAPED_OPCODE;
+			const static OpCode_Type opType = ESCAPED_OPCODE;
 		};
 
 
@@ -172,7 +190,7 @@ namespace x86_64_instruction_base
 
 		private:
 			friend class InstBase;
-			const static OpcodeType opType = PREFIXED_OPCODE;
+			const static OpCode_Type opType = PREFIXED_OPCODE;
 		};
 
 		struct BYTE_ALIGN
@@ -180,20 +198,12 @@ namespace x86_64_instruction_base
 		{
 		private:
 			friend class InstBase;
-			const static OpcodeType opType = NO_OP;
+			const static OpCode_Type opType = NO_OP;
 		};
 	}
 
-	enum Instruction_Prefix
-	{
-		NO_PREFIX = 0,
-		SINGLE_PREFIX = 1,
-		DOUBLE_PREFIX = 2,
-		TRIPLE_PREFIX = 3,
-		QUAD_PREFIX = 4,
-	};
 
-	template<Instruction_Prefix length>
+	template<Instruction_Prefix_Group length>
 	struct BYTE_ALIGN
 	Instruction_prefix
 	{
@@ -234,6 +244,27 @@ namespace x86_64_instruction_base
 	{
 		byte data[size];
 	};
+	
+	template<
+		PrefixGroupDescriptor prefixes,
+		RexPrefix_Optional_x64 x64_inst_reg,
+		OpCode_Type op_code,
+		Displacement_Type disp_len,
+		Immediate_Data_Size imm_len
+	>
+	struct BYTE_ALIGN
+	Instruction : Instruction_prefix<prefixes>,
+				  Optional_Rex_Form<x64_inst_reg>,
+				  OpCode<op_code>,
+				  Scale_Index_Base_Form,
+				  Mod_Reg_RM_Form,
+				  Displacement<disp_len>,
+				  Immediate<imm_len>
+	{
+
+	};
+
+
 
 }
 
