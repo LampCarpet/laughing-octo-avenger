@@ -22,9 +22,11 @@ private:
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	Instruction<PrefixGroupDescriptor::SINGLE_PREFIX,
-				RexPrefix_Optional_x64::HAS_REX_PREFIX,
+	Instruction_Prototype<PrefixGroupDescriptor::SINGLE_PREFIX,
+				Optional::INCLUDED,
 				OpCode_Type::SINGLE_BYTE_OPCODE,
+				Optional::INCLUDED,
+				Optional::INCLUDED,
 				SINGLE_BYTE_DISPLACEMENT, 
 				SINGLE_BYTE_IMMEDIATE> i;
 	

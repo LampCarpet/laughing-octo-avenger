@@ -38,6 +38,12 @@ namespace x86_64_instruction_base
 		REP_REPE_REPZ = 0xf3
 	};
 
+	enum Optional : u8
+	{
+		INCLUDED = 1,
+		Excluded = 0
+	};
+
 	enum InstPrefix_Group_2 : Instruction_Prefix_Group
 	{
 		// use with any branch instruction is reserved
@@ -115,12 +121,6 @@ namespace x86_64_instruction_base
 		volatile byte _b : 1;
 	};
 
-	template<RexPrefix_Optional_x64 opt>
-	struct BYTE_ALIGN
-	Optional_Rex_Form
-	{
-		Rex_Prefix_Form form[opt];
-	};
 
 	struct BYTE_ALIGN
 	Mod_Reg_RM_Form 
@@ -222,44 +222,109 @@ namespace x86_64_instruction_base
 		TRIPLE_BYTE_DISPLACEMENT = 3
 	};
 
-	template<Displacement_Type size>
-	struct BYTE_ALIGN
-	Displacement
-	{
-	private:
-		_byte_ disp[size];
-	};
-
 	enum Immediate_Data_Size :u8
 	{
 		NO_IMMEDIATE_DATA = 0,
 		SINGLE_BYTE_IMMEDIATE = 1,
 		DOUBLE_BYTE_IMMEDIATE = 2,
-		QUAD_BYTE_IMMEDIATE = 4
-	};
-
-	template<Immediate_Data_Size size>
-	struct BYTE_ALIGN
-	Immediate
-	{
-		byte data[size];
+		QUAD_BYTE_IMMEDIATE = 4,
+		OCTO_BYTE_IMMEDATE = 8
 	};
 	
+	template<PrefixGroupDescriptor prefix_descriptor>
+	struct BYTE_ALIGN
+	Prefix_Group_Wrapper
+	{
+		struct BYTE_ALIGN
+		{
+		private:
+			byte data[prefix_descriptor];
+		}Prefix_Group;
+	};
+
+	template<OpCode_Type op_type>
+	struct BYTE_ALIGN
+	OpCode_Wrapper
+	{
+		struct BYTE_ALIGN
+		{
+		private:
+			byte data[op_type];
+		}OpCode;
+	};
+
+	template<Optional option>
+	struct BYTE_ALIGN
+	Optional_Mod_Reg_Wrapper
+	{
+		struct BYTE_ALIGN
+		{
+			private:
+				Mod_Reg_RM_Form data[option];
+		}Mod_Reg_RM;
+	};
+
+	template<Displacement_Type size>
+	struct BYTE_ALIGN
+	Displacement_Wrapper
+	{
+		struct BYTE_ALIGN
+		{
+		private:
+			_byte_ disp[size];
+		}Displacement;
+	};	
+
+	template<Optional option>
+	struct BYTE_ALIGN
+	Optional_Rex_Wrapper
+	{
+		struct BYTE_ALIGN
+		{
+			private:
+			Rex_Prefix_Form form[option];
+		}Rex_Prefix;
+	};
+
+	template<Immediate_Data_Size imm_size>
+	struct BYTE_ALIGN
+	Immediate_Data_Wrapper
+	{
+		struct BYTE_ALIGN
+		{
+		private:
+			byte data[imm_size];
+		}Immediate_Data;
+	};
+
+	template<Optional option>
+	struct BYTE_ALIGN
+	Optional_SIB_Wrapper
+	{
+		struct BYTE_ALIGN
+		{
+		private:
+			Scale_Index_Base_Form data [option];
+		}Scale_Index_Base;
+	};
+
 	template<
 		PrefixGroupDescriptor prefixes,
-		RexPrefix_Optional_x64 x64_inst_reg,
+		Optional x64_inst_reg,
 		OpCode_Type op_code,
+		Optional sib_opt,
+		Optional mod_rm_reg,
 		Displacement_Type disp_len,
 		Immediate_Data_Size imm_len
 	>
 	struct BYTE_ALIGN
-	Instruction : Instruction_prefix<prefixes>,
-				  Optional_Rex_Form<x64_inst_reg>,
-				  OpCode<op_code>,
-				  Scale_Index_Base_Form,
-				  Mod_Reg_RM_Form,
-				  Displacement<disp_len>,
-				  Immediate<imm_len>
+	Instruction_Prototype : Prefix_Group_Wrapper<prefixes>,
+							Optional_Rex_Wrapper<x64_inst_reg>,
+							OpCode_Wrapper<op_code>,
+							Optional_Mod_Reg_Wrapper<mod_rm_reg>,
+							Optional_SIB_Wrapper<sib_opt>,
+							Displacement_Wrapper<disp_len>,
+							Immediate_Data_Wrapper<imm_len>
 	{
 
 	};
