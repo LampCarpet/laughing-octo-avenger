@@ -5,7 +5,6 @@
 
 
 
-
 namespace x86_64_instruction_set
 {
 	using namespace x86_64_instruction_base;

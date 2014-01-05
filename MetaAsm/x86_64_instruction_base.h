@@ -18,9 +18,9 @@ namespace x86_64_instruction_base
 	// A mandatory prefix may be used to express distinct funcionality
 	// and should be place after an optional one, with the exception of REX
 	
-	using namespace Types;
+	
 
-	typedef byte Instruction_Prefix_Group;
+	typedef Types::byte Instruction_Prefix_Group;
 
 	struct Instruction_Prefix
 	{
@@ -38,7 +38,7 @@ namespace x86_64_instruction_base
 		REP_REPE_REPZ = 0xf3
 	};
 
-	enum Optional : u8
+	enum Optional :Types::u8
 	{
 		INCLUDED = 1,
 		Excluded = 0
@@ -75,7 +75,7 @@ namespace x86_64_instruction_base
 		ADDRESS_SIZE_OVERRIDE = 0x67
 	};
 
-	enum Opcode_Constant : byte
+	enum Opcode_Constant : Types::byte
 	{
 		OPCODE_PREFIX_0x66 = 0x66,
 		OPCODE_PREFIX_0xF2 = 0xF2,
@@ -87,13 +87,13 @@ namespace x86_64_instruction_base
 	//When a REX prefix is used in conjunction with an instruction containing a mandatory prefix, the
 	//mandatory prefix must come before the REX so the REX prefix can be immediately
 	//preceding the opcode or the escape byte.
-	enum RexPrefix_Optional_x64 : byte
+	enum RexPrefix_Optional_x64 : Types::byte
 	{
 		NO_REX_PREFIX = 0,
 		HAS_REX_PREFIX = 1
 	};
 
-	enum  PrefixGroupDescriptor : byte
+	enum  PrefixGroupDescriptor : Types::byte
 	{
 		NO_PREFIX = 0,
 		SINGLE_PREFIX = 1,
@@ -103,42 +103,35 @@ namespace x86_64_instruction_base
 	};
 
 
-	template <PrefixGroupDescriptor description, Instruction_Prefix_Group prefixes>
-	class BYTE_ALIGN
-	Prefix_Set : aligned_bytes<description>
-	{
-	public:
-		static const auto _elements_total = sizeof...(prefixes);
-	};
 
 	struct BYTE_ALIGN
 	Rex_Prefix_Form
 	{
-		volatile byte _p : 4;
-		volatile byte _w : 1;
-		volatile byte _r : 1;
-		volatile byte _x : 1;
-		volatile byte _b : 1;
+		volatile Types::byte _p : 4;
+		volatile Types::byte _w : 1;
+		volatile Types::byte _r : 1;
+		volatile Types::byte _x : 1;
+		volatile Types::byte _b : 1;
 	};
 
 
 	struct BYTE_ALIGN
 	Mod_Reg_RM_Form 
 	{
-		volatile byte mod : 2;
-		volatile byte reg : 3;
-		volatile byte rm  : 3;
+		volatile Types::byte mod : 2;
+		volatile Types::byte reg : 3;
+		volatile Types::byte rm : 3;
 	};
 
 	struct BYTE_ALIGN 
 	Scale_Index_Base_Form
 	{
-		volatile byte scale : 2;
-		volatile byte index : 3;
-		volatile byte base  : 3;
+		volatile Types::byte scale : 2;
+		volatile Types::byte index : 3;
+		volatile Types::byte base : 3;
 	};
 
-	enum OpCode_Type : u8
+	enum OpCode_Type : Types::u8
 	{
 		NO_OP = 0,
 		SINGLE_BYTE_OPCODE = 1,
@@ -152,7 +145,7 @@ namespace x86_64_instruction_base
 	struct BYTE_ALIGN
 	OpCode  
 	{
-		byte op[optype];
+		Types::byte op[optype];
 	};
 
 	namespace OpType
@@ -162,7 +155,7 @@ namespace x86_64_instruction_base
 		struct BYTE_ALIGN
 		Single_Byte
 		{
-			_byte_ operand;
+			Types::_byte_ operand;
 
 		private:
 			friend class InstBase;
@@ -172,8 +165,8 @@ namespace x86_64_instruction_base
 		struct BYTE_ALIGN
 		Escaped
 		{
-			volatile const byte escape_opcode = 0x0f;
-			volatile _byte_ operand;
+			volatile const Types::byte escape_opcode = 0x0f;
+			volatile Types::_byte_ operand;
 
 		private:
 			friend class InstBase;
@@ -185,8 +178,8 @@ namespace x86_64_instruction_base
 		Prefixed
 		{
 			volatile Opcode_Constant prefix;
-			volatile const byte escape_opcode = 0x0f;
-			volatile _byte_ operand;
+			volatile const Types::byte escape_opcode = 0x0f;
+			volatile Types::_byte_ operand;
 
 		private:
 			friend class InstBase;
@@ -214,7 +207,7 @@ namespace x86_64_instruction_base
 	};
 
 
-	enum Displacement_Type 
+	enum Displacement_Type : Types::u8
 	{
 		NO_DISPLACEMENT = 0,
 		SINGLE_BYTE_DISPLACEMENT = 1,
@@ -222,7 +215,7 @@ namespace x86_64_instruction_base
 		TRIPLE_BYTE_DISPLACEMENT = 3
 	};
 
-	enum Immediate_Data_Size :u8
+	enum Immediate_Data_Size : Types::u8
 	{
 		NO_IMMEDIATE_DATA = 0,
 		SINGLE_BYTE_IMMEDIATE = 1,
@@ -238,7 +231,7 @@ namespace x86_64_instruction_base
 		struct BYTE_ALIGN
 		{
 		private:
-			byte data[prefix_descriptor];
+			Types::byte data[prefix_descriptor];
 		}Prefix_Group;
 	};
 
@@ -249,7 +242,7 @@ namespace x86_64_instruction_base
 		struct BYTE_ALIGN
 		{
 		private:
-			byte data[op_type];
+			Types::byte data[op_type];
 		}OpCode;
 	};
 
@@ -271,7 +264,7 @@ namespace x86_64_instruction_base
 		struct BYTE_ALIGN
 		{
 		private:
-			_byte_ disp[size];
+			Types::_byte_ disp[size];
 		}Displacement;
 	};	
 
@@ -293,7 +286,7 @@ namespace x86_64_instruction_base
 		struct BYTE_ALIGN
 		{
 		private:
-			byte data[imm_size];
+			Types::byte data[imm_size];
 		}Immediate_Data;
 	};
 

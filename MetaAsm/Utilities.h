@@ -1,16 +1,14 @@
 #pragma once
 #include "stdafx.h"
-
-#include <Windows.h>
+#include "stdtwo.h"
 
 
 namespace utilities
 {
-	using namespace Types;
 
 	template<Types::byte T>
 	struct BYTE_ALIGN
-		aligned_bytes
+	aligned_bytes
 	{
 		Types::_byte_ op[T];
 	};
@@ -36,13 +34,13 @@ namespace utilities
 			flag = PAGE_READWRITE;
 			if (_can_exec){ flag = PAGE_EXECUTE_READWRITE; }
 			
-			if (_pages_allocated > _max_pages) { _pages_allocated = _max_pages}
+			if (_pages_allocated > _max_pages) { _pages_allocated = _max_pages; }
 
 			if (_pages_allocated > 0 && _pages_allocated  < 20)
 			{
 				_ll_node *temp = &_root;
 				temp->prev = nullptr;
-				temp->page = static_cast<u8*>(VirtualAlloc(NULL, 4096, MEM_COMMIT, flag));
+				temp->page = static_cast<Types::u8*>(VirtualAlloc(NULL, 4096, MEM_COMMIT, flag));
 				temp->objects_allocd = 0;
 				temp->next = nullptr;
 
@@ -52,7 +50,7 @@ namespace utilities
 					temp->next = static_cast<_ll_node*>(VirtualAlloc(NULL, sizeof(_ll_node), MEM_COMMIT, flag));
 					temp = temp->next;
 					temp->prev = hist;
-					temp->page = static_cast<u8*>(VirtualAlloc(NULL, 4096, MEM_COMMIT, flag));
+					temp->page = static_cast<Types::u8*>(VirtualAlloc(NULL, 4096, MEM_COMMIT, flag));
 					temp->objects_allocd = 0;
 					temp->next = nullptr;
 				}
@@ -82,7 +80,7 @@ namespace utilities
 			}
 			else
 			{
-				_c_page->page = temp->page = static_cast<u8*>(VirtualAlloc(NULL, 4096, MEM_COMMIT, flag));
+				_c_page->page = temp->page = static_cast<Types::u8*>(VirtualAlloc(NULL, 4096, MEM_COMMIT, flag));
 				_c_page->next = static_cast<_ll_node*>(VirtualAlloc(NULL, sizeof(_ll_node), MEM_COMMIT, flag));
 				_c_page->objects_allocd = 0;
 				_c_page->prev = nullptr;
@@ -92,14 +90,14 @@ namespace utilities
 		void FlushCachePage()
 		{
 			ZeroMemory(_c_page->page, 4096);
-			_byte_allocated -= _c_page->objects_allocd*sizeof(T);
-			_bytes_available += _c_page->objects_allocd*sizeof(T)
+			_bytes_allocated -= _c_page->objects_allocd*sizeof(T);
+			_bytes_available += _c_page->objects_allocd*sizeof(T);
 			_c_page->objects_allocd = 0;
 		}
 
 		int FlushCache()
 		{
-			_ll_node* temp = _root;
+			_ll_node* temp = &_root;
 			for (unsigned i = 0; i < _pages_allocated; i++)
 			{
 				ZeroMemory(temp->page, 4096);
@@ -118,17 +116,17 @@ namespace utilities
 			if (((_c_page->objects_allocd + 1)*sizeof(T)) <= 4096)
 			{
 				_c_page->objects_allocd++; _bytes_available -= sizeof(T); _bytes_allocated += sizeof(T);
-				return static_cast<T*>(_c_page->page + (_c_page->objects_allocd*sizeof(T)));
+				return reinterpret_cast<T*>(_c_page->page + (_c_page->objects_allocd*sizeof(T)));
 			}
 			else
 			{
 				_ll_node *_prev_node = _c_page;
 				if (_pages_allocated <= _max_pages)
 				{
-					_prev_node->next = temp->next = static_cast<_ll_node*>(VirtualAlloc(NULL, sizeof(_ll_node), MEM_COMMIT, flag));
+					_prev_node->next = static_cast<_ll_node*>(VirtualAlloc(NULL, sizeof(_ll_node), MEM_COMMIT, flag));
 					_c_page = _prev_node->next;
 					_c_page->objects_allocd = 0;
-					_c_page->page = temp->page = static_cast<u8*>(VirtualAlloc(NULL, 4096, MEM_COMMIT, flag));
+					_c_page->page = static_cast<Types::u8*>(VirtualAlloc(NULL, 4096, MEM_COMMIT, flag));
 					_c_page->prev = _prev_node;
 					return Alloc();
 				}
@@ -139,13 +137,22 @@ namespace utilities
 			}
 		}
 
+		unsigned GetByteAllocated() const
+		{
+			return _bytes_allocated;
+		}
+
+		unsigned GetByteAvailable() const
+		{
+			return _bytes_available;
+		}
 
 
 	private:
 		_ll_node _root, *_c_page;
 		bool _can_exec, _is_init;
 		unsigned _bytes_allocated, _bytes_available, _pages_allocated, _max_pages;
-		DWORD flag;
+		int flag;
 	};
 
 

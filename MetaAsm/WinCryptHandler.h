@@ -1,7 +1,9 @@
+/*
 #pragma once
 #include "stdafx.h"
-#include "stdtwo.h"
 #include "Utilities.h"
+#include "stdtwo.h"
+
 
 using namespace std;
 
@@ -215,3 +217,5 @@ namespace WinCryptHandler
 
 
 }
+
+*/
