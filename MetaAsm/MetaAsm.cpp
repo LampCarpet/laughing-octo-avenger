@@ -13,7 +13,12 @@ typedef Instruction_Prototype<PrefixGroupDescriptor::QUAD_PREFIX,
 	Optional::INCLUDED,
 	Optional::INCLUDED,
 	Displacement_Type::TRIPLE_BYTE_DISPLACEMENT,
-	Immediate_Data_Size::QUAD_BYTE_IMMEDIATE> InstMax;
+	Immediate_Data_Size::OCTO_BYTE_IMMEDATE> InstructionBuffer;
+
+class InstructionPool
+{
+
+};
 
 
 class ExecEnv
@@ -25,26 +30,23 @@ private:
 
 void CacheTesting()
 {
-	utilities::FastCache<InstMax> cache(2, 20, false);
-	InstMax *t;
+	utilities::FastCache<InstructionBuffer> cache(Types::u8(2), Types::u8(20), false, false);
+	InstructionBuffer *t;
 
 	for (unsigned i = 0; i < 10000; i++)
 	{
-		t = cache.Alloc();
+		t = cache.AllocateObject();
 	}
 
-	cout << "Bytes allocated: " << cache.GetByteAllocated() << endl;
-	cout << "Bytes available: " << cache.GetByteAllocated() << endl << endl;
+	cout << "Objects remaing: " << cache.GetObjectsRemaining() << endl;
 
 	cache.FlushCachePage();
 
-	cout << "Bytes allocated: " << cache.GetByteAllocated() << endl;
-	cout << "Bytes available: " << cache.GetByteAllocated() << endl << endl;
+	cout << "Objects remaing: " << cache.GetObjectsRemaining() << endl;
 
 	cache.FlushCache();
 
-	cout << "Bytes allocated: " << cache.GetByteAllocated() << endl;
-	cout << "Bytes available: " << cache.GetByteAllocated() << endl;
+	cout << "Objects remaing: " << cache.GetObjectsRemaining() << endl;
 
 }
 
@@ -66,7 +68,7 @@ void InstTesting()
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-
+	CacheTesting();
 
 	cin.get();
 	return 0;
