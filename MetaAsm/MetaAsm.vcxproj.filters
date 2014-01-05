@@ -33,6 +33,15 @@
     <ClInclude Include="x86_64_instruction_base.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="stdtwo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinCryptHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
