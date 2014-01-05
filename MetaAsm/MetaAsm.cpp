@@ -23,6 +23,30 @@ public:
 private:
 };
 
+void CacheTesting()
+{
+	utilities::FastCache<InstMax> cache(2, 20, false);
+	InstMax *t;
+
+	for (unsigned i = 0; i < 10000; i++)
+	{
+		t = cache.Alloc();
+	}
+
+	cout << "Bytes allocated: " << cache.GetByteAllocated() << endl;
+	cout << "Bytes available: " << cache.GetByteAllocated() << endl << endl;
+
+	cache.FlushCachePage();
+
+	cout << "Bytes allocated: " << cache.GetByteAllocated() << endl;
+	cout << "Bytes available: " << cache.GetByteAllocated() << endl << endl;
+
+	cache.FlushCache();
+
+	cout << "Bytes allocated: " << cache.GetByteAllocated() << endl;
+	cout << "Bytes available: " << cache.GetByteAllocated() << endl;
+
+}
 
 void InstTesting()
 {
@@ -42,26 +66,7 @@ void InstTesting()
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	utilities::FastCache<InstMax> cache(2,20,false);
-	InstMax *t;
 
-	for (unsigned i = 0; i < 10000; i++)
-	{
-		t = cache.Alloc();
-	}
-	
-	cout << "Bytes allocated: "<<cache.GetByteAllocated()<<endl;
-	cout << "Bytes available: " << cache.GetByteAllocated() << endl<<endl;
-	
-	cache.FlushCachePage();
-
-	cout << "Bytes allocated: " << cache.GetByteAllocated() << endl;
-	cout << "Bytes available: " << cache.GetByteAllocated() << endl << endl;
-
-	cache.FlushCache();
-
-	cout << "Bytes allocated: " << cache.GetByteAllocated() << endl;
-	cout << "Bytes available: " << cache.GetByteAllocated() << endl;
 
 	cin.get();
 	return 0;
