@@ -36,6 +36,36 @@ namespace utilities
 			CAN_EXECUTE = 0x1, IS_INIT = 0x2, USE_STRICT = 0x4
 		};
 
+#ifdef DEBUG
+		void ValidateList(const char* function)
+		{
+			cout <<endl<< function << endl;
+			cout << "_pages_allocated: " << (unsigned)_pages_allocated << endl;
+			cout << "_objects_available: " << (unsigned)_objects_available << endl;
+			_ll_node *temp = &_root;
+			for (unsigned i = 0; i < _pages_allocated; i++)
+			{
+				if (temp != nullptr)
+				{
+					if (temp->next != nullptr)
+					{
+						if (temp != temp->next->prev)
+						{
+							cout << "invalid prev link at: " << i + 1<<endl;
+						}
+					}
+					else if (i == _pages_allocated){  break; }
+					else { cout << "invalid next link at: " << i << endl; break; }
+				}
+				else
+				{
+					cout << "invalid object at: " << i <<endl;
+				}
+			}
+			temp = temp->next;
+		}
+#endif 
+
 	public:
 		FastCache() : _pages_allocated(0), _max_pages(0), _objects_available(0)
 		{
@@ -43,6 +73,7 @@ namespace utilities
 			_n_page = _c_page;
 			_opt_flg = 0;
 		}
+
 
 		FastCache(Types::u8 initial_pages, Types::u8 max_pages, Types::u8 use_strict_max, Types::u8 can_execute)
 		: _pages_allocated(initial_pages), 
@@ -55,23 +86,31 @@ namespace utilities
 
 			if (_pages_allocated > _max_pages) { _pages_allocated = _max_pages; }
 
-			if (_pages_allocated > 0 && _pages_allocated < UCHAR_MAX)
+			if (_pages_allocated > 0)
 			{
-				_ll_node *temp = _root;
+				_ll_node *temp = &_root;
+				temp->page = static_cast<Types::u8*>(VirtualAlloc(NULL, 4096, MEM_COMMIT, flag));
+				temp->next = static_cast<_ll_node*>(VirtualAlloc(NULL, sizeof(_ll_node), MEM_COMMIT, flag));
+				temp->objects_allocd = 0;
+				_ll_node* hist = &_root;
+				temp = temp->next;
+				temp->prev = nullptr;
 
 				for (unsigned i = 1; i < _pages_allocated; i++)
 				{
-					temp = static_cast<_ll_node*>(VirtualAlloc(NULL, sizeof(_ll_node), MEM_COMMIT, flag));
+					temp->prev = hist;
 					temp->page = static_cast<Types::u8*>(VirtualAlloc(NULL, 4096, MEM_COMMIT, flag));
+					temp->next = static_cast<_ll_node*>(VirtualAlloc(NULL, sizeof(_ll_node), MEM_COMMIT, flag));
 					temp->objects_allocd = 0;
-					temp->next = nullptr;/////// fahhhhhhfahfhafhf
-					_ll_node* hist = temp;
+					
+					hist = temp;
 					temp = temp->next;
 					temp->prev = hist;
 				}
+
 				_objects_available = (4096 * _pages_allocated)/sizeof(T);
-				_c_page = _root;
-				_n_page = nullptr;
+				_c_page = &_root;
+				_n_page = temp;
 				SetIsInit(true);
 			}
 
@@ -79,12 +118,14 @@ namespace utilities
 		}
 		~FastCache()
 		{
-			_ll_node* temp = _root;
-			for (unsigned i = 0; i < _pages_allocated; i++)
+			_ll_node* temp = &_root;
+
+			for (unsigned i = 0; i < _pages_allocated; _pages_allocated--)
 			{
 				VirtualFree(temp->page, 4096, MEM_FREE);
+				_objects_available -= temp->objects_allocd;
 				temp = temp->next;
-				VirtualFree(temp->prev, sizeof(_ll_node), MEM_FREE);
+				VirtualFree(temp, sizeof(_ll_node), MEM_FREE);
 			}
 		}
 
@@ -139,15 +180,15 @@ namespace utilities
 
 		int FlushCache()
 		{
-			_ll_node* temp = _root;
-			for (unsigned i = 0; i < _pages_allocated; i++)
+			_ll_node* temp = &_root;
+			for (unsigned i = 0; i < _pages_allocated-1; i++)
 			{
 				ZeroMemory(temp->page, 4096);
 				temp->objects_allocd = 0;
 				temp = temp->next;
 			}
 
-			_c_page = _root;
+			_c_page = &_root;
 			_objects_available = (_pages_allocated * 4096)/sizeof(T);
 			return _objects_available;
 		}
@@ -163,7 +204,7 @@ namespace utilities
 			else
 			{
 				_ll_node *_prev_node = _c_page;
-				if (_pages_allocated <= _max_pages || !_get_flag(Flags::USE_STRICT))
+				if (_pages_allocated < _max_pages && !_get_flag(Flags::USE_STRICT))
 				{
 					AddPage();
 					_c_page->next = _n_page;
@@ -211,7 +252,7 @@ namespace utilities
 			}
 		}
 
-		_ll_node *_root, *_c_page, *_n_page;
+		_ll_node _root, *_c_page, *_n_page;
 		Types::u8 _opt_flag, _pages_allocated, _max_pages, _objects_available;
 		int flag;
 	};
