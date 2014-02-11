@@ -76,6 +76,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="C-lang-defs.h" />
+    <ClInclude Include="ObjectCache.h" />
+    <ClInclude Include="tmp_common.h" />
+    <ClInclude Include="UTF8.h" />
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="x86_64_instruction_base.h" />
     <ClInclude Include="stdafx.h" />
@@ -86,6 +90,7 @@
   <ItemGroup>
     <ClCompile Include="MetaAsm.cpp" />
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="UTF8.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

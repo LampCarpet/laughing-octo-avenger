@@ -1,6 +1,6 @@
 #pragma once
 #include "stdafx.h"
-
+#include "tmp_common.h"
 /*
 
 	----------------------------------
@@ -19,6 +19,7 @@ namespace x86_64_instruction_base
 	// and should be place after an optional one, with the exception of REX
 	
 	
+	using namespace tmp_common;
 
 	typedef Types::byte Instruction_Prefix_Group;
 
@@ -41,7 +42,7 @@ namespace x86_64_instruction_base
 	enum Optional :Types::u8
 	{
 		INCLUDED = 1,
-		Excluded = 0
+		EXCLUDED = 0
 	};
 
 	enum InstPrefix_Group_2 : Instruction_Prefix_Group
@@ -131,7 +132,7 @@ namespace x86_64_instruction_base
 		volatile Types::byte base : 3;
 	};
 
-	enum OpCode_Type : Types::u8
+	enum OpCodeType : Types::u8
 	{
 		NO_OP = 0,
 		SINGLE_BYTE_OPCODE = 1,
@@ -141,12 +142,6 @@ namespace x86_64_instruction_base
 		TRIPLE_BYTE_OPCODE = 3
 	};
 	
-	template<OpCode_Type optype>
-	struct BYTE_ALIGN
-	OpCode  
-	{
-		Types::byte op[optype];
-	};
 
 	namespace OpType
 	{
@@ -158,8 +153,7 @@ namespace x86_64_instruction_base
 			Types::_byte_ operand;
 
 		private:
-			friend class InstBase;
-			const static OpCode_Type opType = SINGLE_BYTE_OPCODE;
+			const static OpCodeType opType = SINGLE_BYTE_OPCODE;
 		};
 
 		struct BYTE_ALIGN
@@ -169,8 +163,7 @@ namespace x86_64_instruction_base
 			volatile Types::_byte_ operand;
 
 		private:
-			friend class InstBase;
-			const static OpCode_Type opType = ESCAPED_OPCODE;
+			const static OpCodeType opType = ESCAPED_OPCODE;
 		};
 
 
@@ -182,32 +175,33 @@ namespace x86_64_instruction_base
 			volatile Types::_byte_ operand;
 
 		private:
-			friend class InstBase;
-			const static OpCode_Type opType = PREFIXED_OPCODE;
+			const static OpCodeType opType = PREFIXED_OPCODE;
 		};
 
 		struct BYTE_ALIGN
 		NoOperand
 		{
 		private:
-			friend class InstBase;
-			const static OpCode_Type opType = NO_OP;
+			const static OpCodeType opType = NO_OP;
 		};
 	}
 
+	template<OpCodeType size>
+	struct BYTE_ALIGN
+	OpCode 
+	{
+		Types::byte data[size];
+	};
 
 	template<Instruction_Prefix_Group length>
 	struct BYTE_ALIGN
 	Instruction_prefix
 	{
 		Instruction_Prefix_Group prefixes[length];
-
-	private:
-		friend class InstBase;
 	};
 
 
-	enum Displacement_Type : Types::u8
+	enum DisplacementType : Types::u8
 	{
 		NO_DISPLACEMENT = 0,
 		SINGLE_BYTE_DISPLACEMENT = 1,
@@ -215,7 +209,7 @@ namespace x86_64_instruction_base
 		TRIPLE_BYTE_DISPLACEMENT = 3
 	};
 
-	enum Immediate_Data_Size : Types::u8
+	enum ImmediateDataSize : Types::u8
 	{
 		NO_IMMEDIATE_DATA = 0,
 		SINGLE_BYTE_IMMEDIATE = 1,
@@ -224,25 +218,37 @@ namespace x86_64_instruction_base
 		OCTO_BYTE_IMMEDATE = 8
 	};
 	
+	
+	struct
+	Empty {};
+
+
+	template<Types::u8 size>
+	struct BYTE_ALIGN
+	Data 
+	{
+		Types::byte data[size];
+	};
+
 	template<PrefixGroupDescriptor prefix_descriptor>
 	struct BYTE_ALIGN
-	Prefix_Group_Wrapper
+	Prefix_Group_Wrapper 
 	{
-		struct BYTE_ALIGN
+		struct BYTE_ALIGN 
 		{
-		private:
 			Types::byte data[prefix_descriptor];
 		}Prefix_Group;
 	};
 
-	template<OpCode_Type op_type>
+	template<OpCodeType op_type>
 	struct BYTE_ALIGN
 	OpCode_Wrapper
-	{
-		struct BYTE_ALIGN
+	{	
+	public:
+		struct BYTE_ALIGN 
 		{
 		private:
-			Types::byte data[op_type];
+			OpCode<op_type> op;
 		}OpCode;
 	};
 
@@ -250,43 +256,43 @@ namespace x86_64_instruction_base
 	struct BYTE_ALIGN
 	Optional_Mod_Reg_Wrapper
 	{
-		struct BYTE_ALIGN
+		struct 
 		{
-			private:
-				Mod_Reg_RM_Form data[option];
+		private:
+			Mod_Reg_RM_Form mod_rm_form[option];
 		}Mod_Reg_RM;
 	};
 
-	template<Displacement_Type size>
+	template<DisplacementType size>
 	struct BYTE_ALIGN
-	Displacement_Wrapper
+	Displacement_Wrapper 
 	{
-		struct BYTE_ALIGN
+		struct BYTE_ALIGN 
 		{
 		private:
-			Types::_byte_ disp[size];
+			Types::byte data[size];
 		}Displacement;
 	};	
 
 	template<Optional option>
 	struct BYTE_ALIGN
-	Optional_Rex_Wrapper
+	Optional_Rex_Wrapper 
 	{
-		struct BYTE_ALIGN
+		struct BYTE_ALIGN 
 		{
-			private:
-			Rex_Prefix_Form form[option];
+		private:
+			Rex_Prefix_Form rex_form[option];
 		}Rex_Prefix;
 	};
 
-	template<Immediate_Data_Size imm_size>
+	template<ImmediateDataSize size>
 	struct BYTE_ALIGN
 	Immediate_Data_Wrapper
 	{
-		struct BYTE_ALIGN
+		struct BYTE_ALIGN 
 		{
 		private:
-			Types::byte data[imm_size];
+			Types::byte data[size];
 		}Immediate_Data;
 	};
 
@@ -294,33 +300,51 @@ namespace x86_64_instruction_base
 	struct BYTE_ALIGN
 	Optional_SIB_Wrapper
 	{
-		struct BYTE_ALIGN
+		struct BYTE_ALIGN 
 		{
 		private:
-			Scale_Index_Base_Form data [option];
+			Scale_Index_Base_Form sib_form[option];
 		}Scale_Index_Base;
 	};
 
+	/*
+	'bit offset' ('bit size', ['range'])
+	0  (2,[0-4]) = prefix byte length  
+	3  (1,[0-1]) = has x64 inst 
+	4  (3,[0-5]) = opcode enum
+	7  (1,[0-1]) = has sib 
+	8  (1,[0-1]) = has mod_rm_reg
+	9  (2,[0-3]) = displacement size
+	11 (2,[0-4]) = immeadiate data length
+	13 (3,[0-7]) = instruction size enum
+	*/
 	template<
 		PrefixGroupDescriptor prefixes,
 		Optional x64_inst_reg,
-		OpCode_Type op_code,
+		OpCodeType op_code,
 		Optional sib_opt,
 		Optional mod_rm_reg,
-		Displacement_Type disp_len,
-		Immediate_Data_Size imm_len
+		DisplacementType disp_len,
+		ImmediateDataSize imm_len
 	>
 	struct BYTE_ALIGN
-	Instruction_Prototype : Prefix_Group_Wrapper<prefixes>,
-							Optional_Rex_Wrapper<x64_inst_reg>,
-							OpCode_Wrapper<op_code>,
-							Optional_Mod_Reg_Wrapper<mod_rm_reg>,
-							Optional_SIB_Wrapper<sib_opt>,
-							Displacement_Wrapper<disp_len>,
-							Immediate_Data_Wrapper<imm_len>
+	Instruction_Prototype
 	{
-
+	public:
+		static const Types::u16 instruction_type_id;
 	};
+
+		
+
+
+
+
+
+
+
+
+
+
 
 
 
